@@ -41,10 +41,11 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
                 .csrf().disable()
                 .authorizeRequests()
                     .antMatchers("/").permitAll()
-                    .antMatchers("/userInfo", "/login", "/signup").permitAll()
+                    .antMatchers("/user-info","/login", "/signup").permitAll()
                     .anyRequest().authenticated()
                 .and()
                     .formLogin()
+                    .defaultSuccessUrl("/myprofile")
                     .loginPage("/login") //any unauthorized requests get redirected here
                 .and()
                     .logout()
