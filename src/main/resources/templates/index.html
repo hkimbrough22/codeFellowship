@@ -1,0 +1,21 @@
+<!doctype html>
+<html lang="en" xmlns:th="http://www.w3.org/1999/xhtml">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport"
+              content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+        <meta http-equiv="X-UA-Compatible" content="ie=edge">
+        <title>CodeFellowship | Home</title>
+    </head>
+    <body>
+    <header>
+        <h1>Welcome to CodeFellowship!</h1>
+        <h3 th:if="${username != null}" th:text="${'Current User: ' +username}"></h3>
+        <nav>
+            <a href="/signup">Signup Here!</a>
+            <p>Already have an account? <a href="/login">Login here!</a> </p>
+            <a th:if="${username !=null}" href="/logout">Logout</a>
+        </nav>
+    </header>
+    </body>
+</html>

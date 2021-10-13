@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport"
+        content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title th:if="${user != null}" th:text="'CodeFellowship | ' + ${user.username}">CodeFellowship | User-page</title>
+</head>
+<body>
+<h3 th:if="${user != null}" th:text="${'Current User: ' +user.username}"></h3>
+<form action="/myprofile" method="PUT">
+  <label for="firstName">First Name</label>
+  <input type="text" th:text="${user.firstName}" name="firstName">
+  <label for="lastName">Last Name</label>
+  <input type="text" th:value="${user.lastName}" name="lastName">
+  <label for="birthday">Birthday</label>
+  <input type="text" th:value="${user.birthday}" name="birthday">
+  <label for="bio">Bio</label>
+  <input type="text" th:text="${user.bio}" name="bio">
+  <input type="submit" value="Update Info!">
+</form>
+
+</body>
+</html>
