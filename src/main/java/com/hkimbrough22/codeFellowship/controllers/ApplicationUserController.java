@@ -36,6 +36,6 @@ public class ApplicationUserController {
         newUser.setPassword(hashedPassword);
 
         applicationUserRepository.save(newUser);
-        return new RedirectView("/");
+        return new RedirectView("/"); //switch to userInfo page
     }
 }
