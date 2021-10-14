@@ -7,6 +7,7 @@ import javax.persistence.*;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Set;
 
 @Entity
 public class ApplicationUser implements UserDetails {
@@ -21,8 +22,35 @@ public class ApplicationUser implements UserDetails {
     private String birthday;
     private String bio;
 
-    @OneToMany
+    public Long getId() {
+        return id;
+    }
+
+    public List<Post> getMyPosts() {
+        return myPosts;
+    }
+
+    @OneToMany(mappedBy = "myUser")
     List<Post> myPosts = new ArrayList<>();
+
+    @ManyToMany(mappedBy = "invitees")
+    Set<ApplicationUser> invitors;
+
+    @ManyToMany
+    @JoinTable(
+        name="friendInvitor_to_friendInvitee",
+            joinColumns = {@JoinColumn(name = "invitor")},
+            inverseJoinColumns = {@JoinColumn(name = "invitee")}
+    )
+    Set<ApplicationUser> invitees;
+
+    public Set<ApplicationUser> getInvitors() {
+        return invitors;
+    }
+
+    public Set<ApplicationUser> getInvitees() {
+        return invitees;
+    }
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities(){
