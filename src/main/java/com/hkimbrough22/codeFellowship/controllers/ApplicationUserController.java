@@ -1,7 +1,9 @@
 package com.hkimbrough22.codeFellowship.controllers;
 
 import com.hkimbrough22.codeFellowship.models.ApplicationUser;
+import com.hkimbrough22.codeFellowship.models.Post;
 import com.hkimbrough22.codeFellowship.repositories.ApplicationUserRepository;
+import com.hkimbrough22.codeFellowship.repositories.PostRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -16,6 +18,9 @@ import org.springframework.web.servlet.view.RedirectView;
 
 import java.nio.file.Path;
 import java.security.Principal;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
 
 @Controller
 public class ApplicationUserController {
@@ -23,43 +28,84 @@ public class ApplicationUserController {
     ApplicationUserRepository applicationUserRepository;
 
     @Autowired
+    PostRepository postRepository;
+
+    @Autowired
     private PasswordEncoder passwordEncoder;
 
     @GetMapping("/login")
-    public String getLogin(){
+    public String getLogin() {
         return "login.html";
     }
 
-    @GetMapping("/myprofile")
-    public String getUserInfo(Principal p, Model m){
-        if(p != null) {
-            String username = p.getName();
-            ApplicationUser currentUser = applicationUserRepository.findByUsername(username);
-
-            m.addAttribute("user", currentUser);
-        }
-        return "myprofile.html";
-    }
-
     @GetMapping("user-info/{id}")
-    public String getOtherUser(@PathVariable Long id, Model m, Principal p){
-        if (p != null)
-        {
+    public String getOtherUser(@PathVariable Long id, Model m, Principal p) {
+        if (p != null) {
             String username = p.getName();
             ApplicationUser currentUser = applicationUserRepository.findByUsername(username);
+
+            ApplicationUser userToSee = applicationUserRepository.findById(id).orElseThrow();
+            Set<ApplicationUser> friends = userToSee.getInvitees();
+
+            List<Post> posts = userToSee.getMyPosts();
+            List<Post> friendsPosts = new ArrayList<>();
+            for(ApplicationUser friend : currentUser.getInvitors()) {
+                List<Post> friendPosts = friend.getMyPosts();
+                friendsPosts.addAll(friendPosts);
+            }
+
             m.addAttribute("user", currentUser);
+            m.addAttribute("userToSee", userToSee);
+            m.addAttribute("userToSeeID", id);
+            m.addAttribute("friends", friends);
+            m.addAttribute("posts", posts);
+            m.addAttribute("friendsPosts", friendsPosts);
         }
-        ApplicationUser userToSee = applicationUserRepository.findById(id).orElseThrow();
-        m.addAttribute("userToSee", userToSee);
 
         // Maybe implement? m.addAttribute("testDate", LocalDateTime.now());
 
         return "/user-info.html";
     }
 
+    @PutMapping("/add-friend/{userToAddID}")
+    public RedirectView addFriend(@PathVariable Long userToAddID, Principal p) {
+        if (p == null) {
+            throw new IllegalArgumentException("You must be logged in to add friends!");
+        }
+
+        ApplicationUser currentUser = applicationUserRepository.findByUsername(p.getName());
+        ApplicationUser userToAdd = applicationUserRepository.findById(userToAddID).orElseThrow();
+
+        currentUser.getInvitees().add(userToAdd);
+        applicationUserRepository.save(currentUser);
+
+        return new RedirectView("/user-info/" + currentUser.getId());
+    }
+
+    @GetMapping("/myprofile")
+    public String getUserInfo(Principal p, Model m) {
+        if (p != null) {
+            String username = p.getName();
+            ApplicationUser currentUser = applicationUserRepository.findByUsername(username);
+            Set<ApplicationUser> friends = currentUser.getInvitees();
+
+            List<Post> friendsPosts = new ArrayList<>();
+            for(ApplicationUser friend : friends) {
+                List<Post> friendPosts = friend.getMyPosts();
+                friendsPosts.addAll(friendPosts);
+            }
+
+            m.addAttribute("friends", friends);
+            m.addAttribute("posts", currentUser.getMyPosts());
+            m.addAttribute("friendsPosts", friendsPosts);
+            m.addAttribute("user", currentUser);
+        }
+        return "myprofile.html";
+    }
+
     @PutMapping("/myprofile")
-    public RedirectView editUserPage(Model m, Principal p, String username, String firstName, String lastName, String bio, String birthday){
-        if(p != null){
+    public RedirectView editUserPage(Model m, Principal p, String username, String firstName, String lastName, String bio, String birthday) {
+        if (p != null) {
             ApplicationUser currentUser = applicationUserRepository.findByUsername(p.getName());
             currentUser.setFirstName(firstName);
             currentUser.setLastName(lastName);
@@ -73,12 +119,12 @@ public class ApplicationUserController {
     }
 
     @GetMapping("/signup")
-    public String getSignUp(){
+    public String getSignUp() {
         return "signup.html";
     }
 
     @PostMapping("/signup")
-    public RedirectView createNewUser(String username, String password){
+    public RedirectView createNewUser(String username, String password) {
         ApplicationUser newUser = new ApplicationUser();
         newUser.setUsername(username);
         String hashedPassword = passwordEncoder.encode(password);
@@ -86,5 +132,17 @@ public class ApplicationUserController {
 
         applicationUserRepository.save(newUser);
         return new RedirectView("/"); //switch to userInfo page
+    }
+
+    @PostMapping("/add-post")
+    public RedirectView addAPost(String body, String username){
+        ApplicationUser userPosting = applicationUserRepository.findByUsername(username);
+        Post newPost = new Post(body, userPosting);
+
+        postRepository.save(newPost);
+//        userPosting.getMyPosts().add(newPost);
+        applicationUserRepository.save(userPosting);
+
+        return new RedirectView("/myprofile");
     }
 }

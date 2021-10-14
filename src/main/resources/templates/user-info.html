@@ -9,18 +9,41 @@
 </head>
 <body>
 <h3 th:if="${user != null}" th:text="${'Current User: ' +user.username}"></h3>
-<h4 th:text="${userToSee.username}"></h4>
+<h4 th:text="'User Profile for: ' +${userToSee.username}"></h4>
 <form action="/user-info" method="PUT">
-    <label for="firstName">First Name</label>
-    <input type="text" th:value="${userToSee.firstName}">
-    <label for="lastName">Last Name</label>
-    <input type="text" th:value="${userToSee.lastName}">
-    <label for="birthday">Birthday</label>
-    <input type="text" th:value="${userToSee.birthday}">
-    <label for="bio">Bio</label>
-    <input type="text" th:value="${userToSee.bio}">
-    <input type="submit" value="Update Info!">
+    <label for="firstName" th:text="'First Name: ' +${userToSee.firstName}"></label><br>
+    <label for="lastName" th:text="'Last Name: ' +${userToSee.lastName}"></label><br>
+    <label for="birthday" th:text="'Birthday: ' +${userToSee.birthday}"></label> <br>
+    <label for="bio" th:text="'Bio: ' +${userToSee.bio}"></label> <br><br>
+
+    <input th:if="${user == userToSee}" type="submit" value="Update Info!">
+</form><br>
+
+<form th:action="'/add-friend/' + ${userToSeeID}" th:method="PUT">
+<!--    <input type="hidden" th:value="${user.id}" name="currentUserID">-->
+    <input type="submit" value="Add Friend!">
 </form>
+
+<h3>Friends</h3>
+<ul th:each="friend : ${friends}">
+    <li th:text="${friend.firstName}"></li>
+</ul>
+<br>
+
+<h3>Posts</h3>
+<ul th:each="post : ${posts}">
+    <li th:text="${post.body}"></li>
+</ul>
+<br>
+
+<div th:if="${user == userToSee}">
+
+<h3>Posts by Friends</h3>
+<ul th:each="post : ${friendsPosts}">
+    <li th:text="${post.myUser.firstName} + ': ' +${post.body}"></li>
+</ul>
+
+</div>
 
 </body>
 </html>
